@@ -1,0 +1,21 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+    <EditTextPreference
+        android:defaultValue="@string/pref_loaction_default"
+        android:inputType="text"
+        android:key="@string/pref_loaction_key"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="@string/pref_loaction_label" />
+
+
+    <ListPreference
+        android:defaultValue="@string/pref_units_metric"
+        android:entries="@array/pref_units_options"
+        android:entryValues="@array/pref_units_values"
+        android:key="@string/pref_units_key"
+        android:title="@string/pref_units_label" />
+
+</PreferenceScreen>
