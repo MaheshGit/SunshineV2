@@ -15,6 +15,7 @@ import android.support.v4.content.Loader;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.Time;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -88,6 +89,8 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     public static final int COL_COORD_LAT = 7;
     public static final int COL_COORD_LONG = 8;
 
+    private String mTempUnit;
+
     public ForecastFragment() {
         // Required empty public constructor
     }
@@ -108,6 +111,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_main, container, false);
         prefHelper = new PrefHelper();
+        mTempUnit = prefHelper.getString(getString(R.string.pref_units_key), getString(R.string.pref_units_metric));
         mRecyclerView = (RecyclerView) view.findViewById(R.id.listRV);
         mLinearLayoutManager = new LinearLayoutManager(this.getActivity());
         mRecyclerView.setLayoutManager(mLinearLayoutManager);
@@ -117,8 +121,8 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                 new DividerItemDecoration(this.getContext(), LinearLayoutManager.VERTICAL);
         mRecyclerView.addItemDecoration(itemDecoration);
 
-        String locationSetting = prefHelper.getString(getString(R.string.pref_loaction_key),
-                getString(R.string.pref_loaction_default));
+        String locationSetting = prefHelper.getString(SunshineApplication.getContext().getString(R.string.pref_units_key),
+                SunshineApplication.getContext().getString(R.string.pref_units_metric));
 
         fetchWeatherData(locationSetting, Constants.RESPONSE_FORMAT, Constants.TEMPERATURE_UNIT, Constants.DAYS, apiKey);
 
@@ -165,6 +169,13 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onResume() {
+        String unit = prefHelper.getString(SunshineApplication.getContext().getString(R.string.pref_units_key),
+                SunshineApplication.getContext().getString(R.string.pref_units_metric));
+        Log.i("UNIT", mTempUnit + " " + unit);
+        if (!unit.equals(mTempUnit)) {
+            addWeatherData();
+            getLoaderManager().restartLoader(FORECAST_LOADER, null, this);
+        }
         super.onResume();
     }
 
@@ -263,7 +274,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                         SunshineApplication.getContext().getContentResolver().bulkInsert(WeatherContract.WeatherEntry.CONTENT_URI, cvArray);
                     }
 
-                    // Sort order:  Ascending, by date.
+                   /* // Sort order:  Ascending, by date.
                     String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
                     Uri weatherForLocationUri = WeatherContract.WeatherEntry.buildWeatherLocationWithStartDate(
                             location_setting, System.currentTimeMillis());
@@ -282,7 +293,8 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                     String[] resultStrs = convertContentValuesToUXFormat(cVVector);
                     for (int i = 0; i < resultStrs.length; i++)
                         weekForecast.add(resultStrs[i]);
-                    mAdapter.notifyDataSetChanged();
+                    mAdapter.notifyDataSetChanged();*/
+                    addWeatherData();
                     //mForecastAdapter.notifyDataSetChanged();
                 } else {
                     //request not successful (like 400,401,403 etc)
@@ -297,6 +309,33 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         });
     }
 
+    void addWeatherData() {
+        if (weekForecast.size() > 0)
+            weekForecast.clear();
+
+        String location_setting = prefHelper.getString(getString(R.string.pref_loaction_key),
+                getString(R.string.pref_loaction_default));
+        String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
+        Uri weatherForLocationUri = WeatherContract.WeatherEntry.buildWeatherLocationWithStartDate(
+                location_setting, System.currentTimeMillis());
+
+        Cursor cur = SunshineApplication.getContext().getContentResolver().query(weatherForLocationUri,
+                null, null, null, sortOrder);
+        Vector<ContentValues> cVVector = new Vector<ContentValues>(cur.getCount());
+        if (cur.moveToFirst()) {
+            do {
+                ContentValues cv = new ContentValues();
+                DatabaseUtils.cursorRowToContentValues(cur, cv);
+                cVVector.add(cv);
+            } while (cur.moveToNext());
+        }
+
+        String[] resultStrs = convertContentValuesToUXFormat(cVVector);
+        for (int i = 0; i < resultStrs.length; i++)
+            weekForecast.add(resultStrs[i]);
+        // mAdapter.notifyDataSetChanged();
+    }
+
     String[] convertContentValuesToUXFormat(Vector<ContentValues> cvv) {
         // return strings to keep UI functional for now
         String[] resultStrs = new String[cvv.size()];
@@ -304,6 +343,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
             ContentValues weatherValues = cvv.elementAt(i);
             String unit = prefHelper.getString(SunshineApplication.getContext().getString(R.string.pref_units_key),
                     SunshineApplication.getContext().getString(R.string.pref_units_metric));
+            Log.i("UNIT", unit);
             String highAndLow = Utils.formatHighLows(
                     weatherValues.getAsDouble(WeatherContract.WeatherEntry.COLUMN_MAX_TEMP),
                     weatherValues.getAsDouble(WeatherContract.WeatherEntry.COLUMN_MIN_TEMP), unit);
