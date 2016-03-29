@@ -15,6 +15,8 @@ import mks.android.sunshine.utilities.PrefHelper;
 
 public class MainActivity extends AppCompatActivity {
     public static final String TAG = MainActivity.class.getSimpleName();
+    private final String FORECASTFRAGMENT_TAG = "FFTAG";
+    private String mLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction().add(R.id.container, ForecastFragment.newInstance())
+            getSupportFragmentManager().beginTransaction().add(R.id.container, ForecastFragment.newInstance(), FORECASTFRAGMENT_TAG)
                     .commit();
         }
     }
@@ -52,6 +54,21 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onResume() {
+        PrefHelper prefHelper = new PrefHelper();
+        String location = prefHelper.getString(getString(R.string.pref_loaction_key),
+                getString(R.string.pref_loaction_default));
+        if (location != null && !location.equals(mLocation)) {
+            ForecastFragment ff = (ForecastFragment) getSupportFragmentManager().findFragmentByTag(FORECASTFRAGMENT_TAG);
+            if (null != ff) {
+                ff.onLocationChanged();
+            }
+            mLocation = location;
+        }
+        super.onResume();
     }
 
     private void openPreferredLocationInMap() {
