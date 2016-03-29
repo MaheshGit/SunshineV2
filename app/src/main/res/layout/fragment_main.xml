@@ -5,9 +5,15 @@
     tools:context=".fragments.ForecastFragment">
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/list"
+        android:id="@+id/listRV"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scrollbars="none"></android.support.v7.widget.RecyclerView>
+        android:scrollbars="none"
+        android:visibility="gone"></android.support.v7.widget.RecyclerView>
+
+    <ListView
+        android:id="@+id/listLV"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"></ListView>
 
 </FrameLayout>

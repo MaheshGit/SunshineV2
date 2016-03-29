@@ -3,6 +3,7 @@ package mks.android.sunshine.fragments;
 import android.app.Activity;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.net.Uri;
@@ -14,12 +15,16 @@ import android.text.format.Time;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 
 import java.util.ArrayList;
 import java.util.Vector;
 
 import mks.android.sunshine.R;
 import mks.android.sunshine.SunshineApplication;
+import mks.android.sunshine.activities.DetailActivity;
 import mks.android.sunshine.adapters.ForecastAdapter;
 import mks.android.sunshine.database.WeatherContract;
 import mks.android.sunshine.network.ApiManager;
@@ -41,8 +46,11 @@ public class ForecastFragment extends Fragment {
     private LinearLayoutManager mLinearLayoutManager;
     // TODO : ADD API KEYS AT CORRECT PLACE
     private final String apiKey = "bd1ab318d5beca2a59593c903ffc62f6";
-    ArrayList<String> weekForecast = new ArrayList<>();
-    PrefHelper prefHelper;
+    private ArrayList<String> weekForecast = new ArrayList<>();
+    private PrefHelper prefHelper;
+
+    private ListView listView;
+    private ArrayAdapter<String> mForecastAdapter;
 
     public ForecastFragment() {
         // Required empty public constructor
@@ -64,7 +72,7 @@ public class ForecastFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_main, container, false);
         prefHelper = new PrefHelper();
-        mRecyclerView = (RecyclerView) view.findViewById(R.id.list);
+        mRecyclerView = (RecyclerView) view.findViewById(R.id.listRV);
         mLinearLayoutManager = new LinearLayoutManager(this.getActivity());
         mRecyclerView.setLayoutManager(mLinearLayoutManager);
         mAdapter = new ForecastAdapter(getActivity(), weekForecast);
@@ -72,6 +80,24 @@ public class ForecastFragment extends Fragment {
         RecyclerView.ItemDecoration itemDecoration =
                 new DividerItemDecoration(this.getContext(), LinearLayoutManager.VERTICAL);
         mRecyclerView.addItemDecoration(itemDecoration);
+
+        mForecastAdapter =
+                new ArrayAdapter<String>(
+                        getActivity(), // The current context (this activity)
+                        R.layout.list_item_forecast, // The name of the layout ID.
+                        R.id.list_item_forecast_textview, // The ID of the textview to populate.
+                        weekForecast);
+        listView = (ListView) view.findViewById(R.id.listLV);
+        listView.setAdapter(mForecastAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String forecast = mForecastAdapter.getItem(position);
+                Intent intent = new Intent(getActivity(), DetailActivity.class)
+                        .putExtra(Intent.EXTRA_TEXT, forecast);
+                startActivity(intent);
+            }
+        });
         return view;
     }
 
@@ -199,6 +225,7 @@ public class ForecastFragment extends Fragment {
                     for (int i = 0; i < resultStrs.length; i++)
                         weekForecast.add(resultStrs[i]);
                     mAdapter.notifyDataSetChanged();
+                    mForecastAdapter.notifyDataSetChanged();
                 } else {
                     //request not successful (like 400,401,403 etc)
                     //Handle errors
