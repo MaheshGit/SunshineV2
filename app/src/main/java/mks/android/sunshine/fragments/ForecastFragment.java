@@ -26,6 +26,7 @@ import mks.android.sunshine.R;
 import mks.android.sunshine.SunshineApplication;
 import mks.android.sunshine.activities.DetailActivity;
 import mks.android.sunshine.adapters.ForecastAdapter;
+import mks.android.sunshine.adapters.ForecastCursorAdapter;
 import mks.android.sunshine.database.WeatherContract;
 import mks.android.sunshine.network.ApiManager;
 import mks.android.sunshine.network.model.DayForecast;
@@ -51,6 +52,7 @@ public class ForecastFragment extends Fragment {
 
     private ListView listView;
     private ArrayAdapter<String> mForecastAdapter;
+    private ForecastCursorAdapter mForecastCursorAdapter;
 
     public ForecastFragment() {
         // Required empty public constructor
@@ -81,14 +83,34 @@ public class ForecastFragment extends Fragment {
                 new DividerItemDecoration(this.getContext(), LinearLayoutManager.VERTICAL);
         mRecyclerView.addItemDecoration(itemDecoration);
 
-        mForecastAdapter =
+        String locationSetting = prefHelper.getString(getString(R.string.pref_loaction_key),
+                getString(R.string.pref_loaction_default));
+
+        fetchWeatherData(locationSetting, Constants.RESPONSE_FORMAT, Constants.TEMPERATURE_UNIT, Constants.DAYS, apiKey);
+
+       /* mForecastAdapter =
                 new ArrayAdapter<String>(
                         getActivity(), // The current context (this activity)
                         R.layout.list_item_forecast, // The name of the layout ID.
                         R.id.list_item_forecast_textview, // The ID of the textview to populate.
-                        weekForecast);
+                        weekForecast);*/
+
+        // Sort order:  Ascending, by date.
+        String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
+        Uri weatherForLocationUri = WeatherContract.WeatherEntry.buildWeatherLocationWithStartDate(
+                locationSetting, System.currentTimeMillis());
+
+        Cursor cur = getActivity().getContentResolver().query(weatherForLocationUri,
+                null, null, null, sortOrder);
+
+        // The CursorAdapter will take data from our cursor and populate the ListView
+        // However, we cannot use FLAG_AUTO_REQUERY since it is deprecated, so we will end
+        // up with an empty list the first time we run.
+        mForecastCursorAdapter = new ForecastCursorAdapter(getActivity(), cur, 0);
+
         listView = (ListView) view.findViewById(R.id.listLV);
-        listView.setAdapter(mForecastAdapter);
+        // listView.setAdapter(mForecastAdapter);
+        listView.setAdapter(mForecastCursorAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -104,10 +126,6 @@ public class ForecastFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        String location = prefHelper.getString(getString(R.string.pref_loaction_key),
-                getString(R.string.pref_loaction_default));
-
-        fetchWeatherData(location, Constants.RESPONSE_FORMAT, Constants.TEMPERATURE_UNIT, Constants.DAYS, apiKey);
     }
 
     private void fetchWeatherData(final String postalCode, String mode, String units, String cnt, String appID) {
@@ -225,7 +243,7 @@ public class ForecastFragment extends Fragment {
                     for (int i = 0; i < resultStrs.length; i++)
                         weekForecast.add(resultStrs[i]);
                     mAdapter.notifyDataSetChanged();
-                    mForecastAdapter.notifyDataSetChanged();
+                    //mForecastAdapter.notifyDataSetChanged();
                 } else {
                     //request not successful (like 400,401,403 etc)
                     //Handle errors
