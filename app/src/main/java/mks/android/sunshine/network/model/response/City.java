@@ -1,4 +1,4 @@
-package mks.android.sunshine.network.model;
+package mks.android.sunshine.network.model.response;
 
 /**
  * Created by Mahesh on 17/3/16.

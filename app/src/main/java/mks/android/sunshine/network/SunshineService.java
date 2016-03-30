@@ -1,6 +1,6 @@
 package mks.android.sunshine.network;
 
-import mks.android.sunshine.network.model.Forecast;
+import mks.android.sunshine.network.model.response.Forecast;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Query;

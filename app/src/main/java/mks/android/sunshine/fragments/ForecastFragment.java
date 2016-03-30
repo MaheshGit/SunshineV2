@@ -33,9 +33,9 @@ import mks.android.sunshine.adapters.ForecastAdapter;
 import mks.android.sunshine.adapters.ForecastCursorAdapter;
 import mks.android.sunshine.database.WeatherContract;
 import mks.android.sunshine.network.ApiManager;
-import mks.android.sunshine.network.model.DayForecast;
-import mks.android.sunshine.network.model.Forecast;
-import mks.android.sunshine.network.model.Weather;
+import mks.android.sunshine.network.model.response.DayForecast;
+import mks.android.sunshine.network.model.response.Forecast;
+import mks.android.sunshine.network.model.response.Weather;
 import mks.android.sunshine.utilities.Constants;
 import mks.android.sunshine.utilities.DividerItemDecoration;
 import mks.android.sunshine.utilities.PrefHelper;
@@ -474,7 +474,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
      * fragment to allow an interaction in this fragment to be communicated
      * to the activity and potentially other fragments contained in that
      * activity.
-     * <p/>
+     * <p>
      * See the Android Training lesson <a href=
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
@@ -483,5 +483,4 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         // TODO: Update argument type and name
         public void onFragmentInteraction(Uri uri);
     }
-
 }
