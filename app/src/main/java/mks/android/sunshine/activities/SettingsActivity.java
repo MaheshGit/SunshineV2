@@ -16,6 +16,7 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
+import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.text.TextUtils;
 import android.view.MenuItem;
@@ -29,7 +30,7 @@ import mks.android.sunshine.R;
  * handset devices, settings are presented as a single list. On tablets,
  * settings are split by category, with category headers shown to the left of
  * the list of settings.
- * <p>
+ * <p/>
  * See <a href="http://developer.android.com/design/patterns/settings.html">
  * Android Design: Settings</a> for design guidelines and the <a
  * href="http://developer.android.com/guide/topics/ui/settings.html">Settings
@@ -136,6 +137,12 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    @Nullable
+    @Override
+    public Intent getParentActivityIntent() {
+        return super.getParentActivityIntent().addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
     }
 
     /**

@@ -3,7 +3,6 @@ package mks.android.sunshine.fragments;
 import android.app.Activity;
 import android.content.ContentUris;
 import android.content.ContentValues;
-import android.content.Intent;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.net.Uri;
@@ -28,7 +27,6 @@ import java.util.Vector;
 
 import mks.android.sunshine.R;
 import mks.android.sunshine.SunshineApplication;
-import mks.android.sunshine.activities.DetailActivity;
 import mks.android.sunshine.adapters.ForecastAdapter;
 import mks.android.sunshine.adapters.ForecastCursorAdapter;
 import mks.android.sunshine.database.WeatherContract;
@@ -55,6 +53,8 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     private PrefHelper prefHelper;
 
     private ListView listView;
+    private int mPosition = ListView.INVALID_POSITION;
+    private static final String SELECTED_KEY = "selected_position";
     private ArrayAdapter<String> mForecastAdapter;
     private ForecastCursorAdapter mForecastCursorAdapter;
 
@@ -90,6 +90,11 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     public static final int COL_COORD_LONG = 8;
 
     private String mTempUnit;
+    private boolean mUseTodayLayout;
+
+    public interface ItemCallback {
+        public void onItemSelected(Uri dateUri);
+    }
 
     public ForecastFragment() {
         // Required empty public constructor
@@ -99,6 +104,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         ForecastFragment fragment = new ForecastFragment();
         return fragment;
     }
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -156,14 +162,21 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                 if (cursor != null) {
                     String locationSetting = prefHelper.getString(getString(R.string.pref_loaction_key),
                             getString(R.string.pref_loaction_default));
-                    Intent intent = new Intent(getActivity(), DetailActivity.class)
-                            .setData(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
+                    ((ItemCallback) getActivity())
+                            .onItemSelected(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
                                     locationSetting, cursor.getLong(COL_WEATHER_DATE)
                             ));
-                    startActivity(intent);
                 }
+                mPosition = position;
             }
         });
+
+        if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
+            // The listview probably hasn't even been populated yet.  Actually perform the
+            // swapout in onLoadFinished.
+            mPosition = savedInstanceState.getInt(SELECTED_KEY);
+        }
+        mForecastCursorAdapter.setUseTodayLayout(mUseTodayLayout);
         return view;
     }
 
@@ -177,6 +190,14 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
             getLoaderManager().restartLoader(FORECAST_LOADER, null, this);
         }
         super.onResume();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        if (mPosition != ListView.INVALID_POSITION) {
+            outState.putInt(SELECTED_KEY, mPosition);
+        }
+        super.onSaveInstanceState(outState);
     }
 
     private void fetchWeatherData(final String postalCode, String mode, String units, String cnt, String appID) {
@@ -455,6 +476,12 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mForecastCursorAdapter.swapCursor(data);
+        if (mPosition != ListView.INVALID_POSITION) {
+            // If we don't need to restart the loader, and there's a desired position to restore
+            // to, do so now.
+            listView.smoothScrollToPosition(mPosition);
+            listView.setItemChecked(mPosition, true);
+        }
     }
 
     @Override
@@ -469,12 +496,19 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         getLoaderManager().restartLoader(FORECAST_LOADER, null, this);
     }
 
+    public void setUseTodayLayout(boolean useTodayLayout) {
+        mUseTodayLayout = useTodayLayout;
+        if (mForecastCursorAdapter != null) {
+            mForecastCursorAdapter.setUseTodayLayout(mUseTodayLayout);
+        }
+    }
+
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
      * to the activity and potentially other fragments contained in that
      * activity.
-     * <p>
+     * <p/>
      * See the Android Training lesson <a href=
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
