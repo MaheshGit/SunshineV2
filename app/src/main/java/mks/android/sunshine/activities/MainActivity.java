@@ -1,5 +1,8 @@
 package mks.android.sunshine.activities;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -12,6 +15,7 @@ import android.view.MenuItem;
 import mks.android.sunshine.R;
 import mks.android.sunshine.fragments.DetailFragment;
 import mks.android.sunshine.fragments.ForecastFragment;
+import mks.android.sunshine.services.SunshineService;
 import mks.android.sunshine.utilities.PrefHelper;
 
 public class MainActivity extends AppCompatActivity implements ForecastFragment.ItemCallback {
@@ -71,6 +75,15 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
             return true;
         } else if (id == R.id.action_map) {
             openPreferredLocationInMap();
+        } else if (id == R.id.action_refresh) {
+            /*ForecastFragment forecastFragment = ((ForecastFragment) getSupportFragmentManager()
+                    .findFragmentById(R.id.fragment_forecast));
+            forecastFragment.onLocationChanged();*/
+            Intent alarmIntent = new Intent(this, SunshineService.AlarmReceiver.class);
+            PendingIntent pi = PendingIntent.getBroadcast(this, 0, alarmIntent, PendingIntent.FLAG_ONE_SHOT);//getBroadcast(context, 0, i, 0);
+            AlarmManager am = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+            //Set the AlarmManager to wake up the system.
+            am.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 5000, pi);
         }
 
         return super.onOptionsItemSelected(item);

@@ -41,7 +41,16 @@
 
         <provider
             android:name=".database.WeatherProvider"
-            android:authorities="mks.android.sunshine"></provider>
+            android:authorities="mks.android.sunshine" />
+
+        <service
+            android:name=".services.SunshineService"
+            android:exported="false"></service>
+        <receiver
+            android:name=".services.SunshineService$AlarmReceiver"
+            android:enabled="true">
+            
+        </receiver>
     </application>
 
 </manifest>
