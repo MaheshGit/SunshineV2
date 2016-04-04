@@ -24,6 +24,8 @@ import android.view.MenuItem;
 import java.util.List;
 
 import mks.android.sunshine.R;
+import mks.android.sunshine.SunshineApplication;
+import mks.android.sunshine.sync.SunshineSyncAdapter;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
@@ -85,6 +87,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 // simple string representation.
                 preference.setSummary(stringValue);
             }
+            SunshineSyncAdapter.syncImmediately(SunshineApplication.getContext());
             return true;
         }
     };

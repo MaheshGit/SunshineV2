@@ -3,6 +3,7 @@ package mks.android.sunshine.fragments;
 import android.app.Activity;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.net.Uri;
@@ -16,6 +17,7 @@ import android.support.v7.widget.RecyclerView;
 import android.text.format.Time;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -43,6 +45,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+    private static final String TAG = ForecastFragment.class.getSimpleName();
     private OnFragmentInteractionListener mListener;
     private RecyclerView mRecyclerView;
     private ForecastAdapter mAdapter;
@@ -98,6 +101,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     public ForecastFragment() {
         // Required empty public constructor
+        setHasOptionsMenu(true);
     }
 
     public static ForecastFragment newInstance() {
@@ -198,6 +202,37 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
             outState.putInt(SELECTED_KEY, mPosition);
         }
         super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_map) {
+            openPreferredLocationInMap();
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void openPreferredLocationInMap() {
+        if (null != mForecastCursorAdapter) {
+            Cursor c = mForecastCursorAdapter.getCursor();
+            if (null != c) {
+                c.moveToPosition(0);
+                String posLat = c.getString(COL_COORD_LAT);
+                String posLong = c.getString(COL_COORD_LONG);
+                Uri geoLocation = Uri.parse("geo:" + posLat + "," + posLong);
+
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(geoLocation);
+
+                if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
+                    startActivity(intent);
+                } else {
+                    Log.d(TAG, "Couldn't call " + geoLocation.toString() + ", no receiving apps installed!");
+                }
+            }
+
+        }
     }
 
     private void fetchWeatherData(final String postalCode, String mode, String units, String cnt, String appID) {
@@ -508,7 +543,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
      * fragment to allow an interaction in this fragment to be communicated
      * to the activity and potentially other fragments contained in that
      * activity.
-     * <p/>
+     * <p>
      * See the Android Training lesson <a href=
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
