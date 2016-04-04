@@ -12,5 +12,5 @@
         android:id="@+id/action_map"
         android:title="@string/action_map"
         app:showAsAction="never" />
-    
+
 </menu>

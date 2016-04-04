@@ -14,6 +14,8 @@ import android.content.Intent;
 import android.content.SyncRequest;
 import android.content.SyncResult;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -357,9 +359,11 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                     //build your notification here.
                     // NotificationCompatBuilder is a very convenient way to build backward-compatible
                     // notifications.  Just throw in some data.
+                    Bitmap largeIcon = BitmapFactory.decodeResource(SunshineApplication.getContext().getResources(), iconId);
                     NotificationCompat.Builder mBuilder =
                             new NotificationCompat.Builder(getContext())
                                     .setSmallIcon(iconId)
+                                    .setLargeIcon(largeIcon)
                                     .setContentTitle(title)
                                     .setContentText(contentText);
 
