@@ -70,16 +70,6 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
         if (id == R.id.action_settings) {
             startActivity(new Intent(this, SettingsActivity.class));
             return true;
-        } else if (id == R.id.action_refresh) {
-            /*ForecastFragment forecastFragment = ((ForecastFragment) getSupportFragmentManager()
-                    .findFragmentById(R.id.fragment_forecast));
-            forecastFragment.onLocationChanged();*/
-            SunshineSyncAdapter.syncImmediately(this);
-            /*Intent alarmIntent = new Intent(this, SunshineService.AlarmReceiver.class);
-            PendingIntent pi = PendingIntent.getBroadcast(this, 0, alarmIntent, PendingIntent.FLAG_ONE_SHOT);//getBroadcast(context, 0, i, 0);
-            AlarmManager am = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-            //Set the AlarmManager to wake up the system.
-            am.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 5000, pi);*/
         }
 
         return super.onOptionsItemSelected(item);
